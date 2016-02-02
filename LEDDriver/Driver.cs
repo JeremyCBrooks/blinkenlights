@@ -12,7 +12,7 @@ namespace LEDDriver
 
     public class Driver
     {
-        private static readonly string fifo = "blink.fifo";
+        private static readonly string fifo = "/tmp/blink.fifo";
         private static readonly string driver = "blink.py";
 
         private Process driverProcess;
@@ -26,15 +26,27 @@ namespace LEDDriver
             }
 
             //look for already running process
-            var processes = Process.GetProcesses();
-            foreach (var process in processes)
-            {
-                if (process.ProcessName == driver)
-                {
-                    driverProcess = process;
-                    break;
-                }
-            }
+			try{
+				var pgrep = new Process();
+				pgrep.StartInfo = new ProcessStartInfo("pgrep", "-lf python")
+				{
+					UseShellExecute = false,
+					RedirectStandardOutput = true,
+					CreateNoWindow = true
+				};
+				pgrep.Start();
+				while (!pgrep.StandardOutput.EndOfStream) {
+					try{
+						string line = pgrep.StandardOutput.ReadLine ();
+						string[] parts = line.Split (new []{ ' ' });
+						if (parts [1] == driver) {
+							int processId = int.Parse (parts [0]);
+							driverProcess = Process.GetProcessById (processId);
+							break;
+						}
+					}catch{ }
+				}
+			}catch{ }
 
             if (driverProcess == null)
             {
@@ -42,7 +54,9 @@ namespace LEDDriver
                 driverProcess.StartInfo = new ProcessStartInfo(driver)
                 {
                     UseShellExecute = false,
+					CreateNoWindow = true
                 };
+				driverProcess.EnableRaisingEvents = true;
                 driverProcess.Exited += DriverProcess_Exited;
                 driverProcess.Start();
             }
@@ -60,12 +74,12 @@ namespace LEDDriver
 
         public bool Stop()
         {
-            return writeValue("x");
+			return writeValue ("x");
         }
 
         public bool EnableLED(LED led)
         {
-            return writeValue(led.ToString());
+			return writeValue(((int)led).ToString());
         }
 
         public bool DisableAllLEDs()
@@ -81,10 +95,11 @@ namespace LEDDriver
                 return false;
             }
 
-            using (var fs = File.OpenWrite(fifo))
-            using (var sr = new StreamWriter(fs))
+			byte[] buffer = System.Text.Encoding.UTF8.GetBytes (value);
+			using (var fs = new FileStream(fifo, FileMode.Open, FileAccess.Write, FileShare.Write))
             {
-                sr.Write(value);
+				fs.Write(buffer, 0, buffer.Length);
+				fs.Flush ();
             }
 
             return true;

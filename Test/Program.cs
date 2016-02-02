@@ -32,6 +32,7 @@ namespace Test
             System.Console.Out.WriteLine("Stop");
             System.Threading.Thread.Sleep(1000);
 
+			while (driver.IsRunning) {}
             System.Console.Out.WriteLine($"Is running: {driver.IsRunning}");
             System.Threading.Thread.Sleep(1000);
         }

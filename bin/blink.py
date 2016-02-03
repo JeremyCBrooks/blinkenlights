@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 def getKey():
    import sys, select
 
@@ -35,7 +37,7 @@ def init():
    pwm.start(0)
    print("init end")
 
-   fifoPath = "./blink.fifo"
+   fifoPath = "/tmp/blink.fifo"
    if not os.path.exists(fifoPath):
       os.mkfifo(fifoPath)
    global fifo

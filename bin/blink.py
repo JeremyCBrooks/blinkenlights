@@ -23,7 +23,7 @@ activePin = 0
 fifo = None
 
 def init():
-   print("init start")
+#   print("init start")
    GPIO.setmode(GPIO.BOARD)
    GPIO.setup(redPin, GPIO.OUT)
    GPIO.setup(greenPin, GPIO.OUT)
@@ -35,7 +35,7 @@ def init():
    global pwm
    pwm = GPIO.PWM(pwmPin, 50)
    pwm.start(0)
-   print("init end")
+#   print("init end")
 
    fifoPath = "/tmp/blink.fifo"
    if not os.path.exists(fifoPath):
@@ -54,14 +54,13 @@ def readFIFO():
    if len(buffer)==0:
       return None
    else:
-      print "stuff: ", buffer
       return buffer
 
 def allOff():
    GPIO.output(redPin, False)
    GPIO.output(greenPin, False)
    GPIO.output(bluePin, False)
-   print("All pins off") 
+#   print("All pins off") 
 
 def enablePin(pin):
    global dc
@@ -84,7 +83,7 @@ def enablePin(pin):
    pwm.ChangeDutyCycle(dc)
    GPIO.output(activePin, True)
 
-   print("Pin %d on" % pin)
+#   print("Pin %d on" % pin)
 
 try:
    init()
@@ -105,7 +104,7 @@ try:
 
       x = readFIFO() #getKey()
       if(x is not None):
-         print(x)
+#         print(x)
 
          if x=='x':
             break
@@ -117,8 +116,8 @@ try:
             enablePin(bluePin)
          elif x=='0':
             allOff()
-         else:
-            print("Unknown command")
+#         else:
+#            print("Unknown command")
 
       time.sleep(0.05)
 except Exception, err:
@@ -126,17 +125,17 @@ except Exception, err:
 finally:
    #cleanup
    if fifo is not None:
-      print "close fifo"
+#      print "close fifo"
       os.close(fifo)
 
    allOff()
 
    if pwm is not None:
-      print "pwm stop"
+#      print "pwm stop"
       pwm.ChangeDutyCycle(0)
       pwm.stop()
 
    GPIO.cleanup()
-   print "GPIO cleanup"
+#   print "GPIO cleanup"
 
-   print "exit"
+#   print "exit"
